@@ -13,9 +13,9 @@
 
 #include <LedControl.h> //MAX7219 and MAX7221 library available in Arduino IDE for download and install
 
-const int DIN = 12;
-const int CS = 11;
-const int CLK = 10;
+const int DIN = 12;   //Digital Input
+const int CS = 11;    //Chip Select
+const int CLK = 10;   //Clock Signal
 
 LedControl lc = LedControl(DIN, CLK, CS, 0);
 
@@ -29,7 +29,8 @@ void setup() {
 
 void loop() {
 
-  bool cgrid[8][8], ngrid[8][8], pgrid[8][8]; //current grid and next grid
+  bool cgrid[8][8], ngrid[8][8]; //current grid and next grid, booleans are easily addressible
+                                 //in comparison to individual bits in a byte.
 
   int neighbors = 0;
 
@@ -42,6 +43,8 @@ void loop() {
     for (int j = 0; j < 7; j++){
 
       if (random(4) > 2) { cgrid[i][j] = true; } else { cgrid[i][j] = false; }
+
+      ngrid[i][j] = false; //Initialize next grid to dead cells.
       
     }
     
@@ -62,7 +65,7 @@ void loop() {
 
         neighbors = countNeighbors(cgrid, i, j);
 
-        if (cgrid[i][j] == true){ //If a cell is 'alive', game is not over, apply alive cell rules
+        if (cgrid[i][j] == true){ //If a cell is 'alive', game is not over, apply alive cell rules.
 
           gameover = false;
 
@@ -86,7 +89,7 @@ void loop() {
           
         }
 
-        else{ //If cell is not alive, apply dead cell rule
+        else{ //If cell is not alive, apply dead cell rule.
 
           if (neighbors == 3) ngrid[i][j] = true;
           
@@ -96,14 +99,14 @@ void loop() {
       
     }
 
-    if (memcmp(cgrid, ngrid, sizeof(cgrid)) == 0){ //Stable / repetitive state - restart
+    if (memcmp(cgrid, ngrid, sizeof(cgrid)) == 0){ // If in stable or repetitive state, restart.
 
       gameover = true; 
       
     }
     else{
    
-      memcpy(cgrid, ngrid, sizeof(cgrid));
+      memcpy(cgrid, ngrid, sizeof(cgrid));    //Current grid becomes next grid.
       
     }
     
@@ -113,8 +116,19 @@ void loop() {
 
 void displayGeneration(bool ba[8][8]){
 
-  for (int i = 0; i < 8; i++){ //Inelegant boolean array to byte conversion for matrix
+  //This for loop in constructed in such a way that mirrors the output while rotating 90 degress.
+  //I've done this to orient the image properly for my own setup. The board is propped up by its pins
+  //in my breadboard. Your parts might need to be done otherwise. While this isn't necessary for the Game
+  //of Life, it will be if you intend on displaying images.
+
+  for (int i = 0; i < 8; i++){
+    
+    //Inelegant boolean array to byte conversion for matrix
     lc.setColumn(0, 7 - i, (byte) (ba[i][0] | ba[i][1] << 1 | ba[i][2] << 2 | ba[i][3] << 3 | ba[i][4] << 4 | ba[i][5] << 5 | ba[i][6] << 6 | ba[i][7] << 7));
+
+    //Uncomment for normal operation, use (7 - i) and setColumn as necessary to achieve the proper orientation.
+    //lc.setRow(0, i, (byte) (ba[i][0] | ba[i][1] << 1 | ba[i][2] << 2 | ba[i][3] << 3 | ba[i][4] << 4 | ba[i][5] << 5 | ba[i][6] << 6 | ba[i][7] << 7));
+    
   }
   
 }
